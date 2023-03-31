@@ -6,7 +6,9 @@ from keras.optimizers import Adam
 from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
-from google.colab import drive
+
+
+# from google.colab import drive
 
 
 # Load the dataset
@@ -95,6 +97,7 @@ def draw_images(generator, epoch, examples=25, dim=(5, 5), figsize=(10, 10)):
         plt.axis('off')
     plt.tight_layout()
     plt.savefig('Generated_images %d.png' % epoch)
+    plt.show()
 
 
 def train_GAN(epochs=1, batch_size=128):
@@ -112,6 +115,8 @@ def train_GAN(epochs=1, batch_size=128):
         for _ in tqdm(range(batch_size)):
             # Generate fake images from random noiset
             noise = np.random.normal(0, 1, (batch_size, 100))
+
+            # 生成有噪声的图片
             fake_images = generator.predict(noise)
 
             # Select a random batch of real images from MNIST
@@ -131,46 +136,13 @@ def train_GAN(epochs=1, batch_size=128):
 
             # Train the generator/chained GAN model (with frozen weights in discriminator)
             discriminator.trainable = False
+            # 这里训练是使得generator生成的图片更逼真，所以随着epoch的增加画出来的图片更像数字了
             GAN.train_on_batch(noise, label_real)
 
         # Draw generated images every 15 epoches
-        if i == 1 or i % 10 == 0:
+        if i == 1 or i % 5 == 0:
             draw_images(generator, i)
 
 
-train_GAN(epochs=400, batch_size=128)
-
-# Loading the data
-X_train, y_train = load_data()
-
-# Creating GAN
-generator= build_generator()
-discriminator= build_discriminator()
-GAN = build_GAN(discriminator, generator)
-
-for i in range(1, epochs + 1):
-    print("Epoch %d" % i)
-    for _ in tqdm(range(batch_size)):
-        # Generate fake images from random noiset
-        noise = np.random.normal(0, 1, (batch_size, 100))
-        fake_images = generator.predict(noise)
-
-# Select a random batch of real images from MNIST
-real_images = X_train[np.random.randint(0, X_train.shape[0], batch_size)]
-
-# Labels for fake and real images
-label_fake = np.zeros(batch_size)
-label_real = np.ones(batch_size)
-
-# Concatenate fake and real images
-X = np.concatenate([fake_images, real_images])
-y = np.concatenate([label_fake, label_real])
-
-# Train the discriminator
-discriminator.trainable=True
-discriminator.train_on_batch(X, y)
-
-# Train the generator/chained GAN model (with frozen weights in discriminator)
-discriminator.trainable=False
-GAN.train_on_batch(noise, label_real)
-
+train_GAN(epochs=11, batch_size=128)
+exit()
